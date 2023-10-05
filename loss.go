@@ -7,6 +7,7 @@ import (
 
 const epsilon = 1e-7
 
+// BinaryCrossEntropy calculates binary cross entropy
 func BinaryCrossEntropy(targets []float64, preds []float64) float64 {
 	if len(targets) != len(preds) {
 		panic(fmt.Sprintf("targets must have the same length of preds. targets: %d, preds: %d", len(targets), len(preds)))
@@ -26,6 +27,7 @@ func BinaryCrossEntropy(targets []float64, preds []float64) float64 {
 	return totalValue / float64(len(targets))
 }
 
+// DiffBinaryCrossEntropy calculates differential of binary cross entropy
 func DiffBinaryCrossEntropy(targets []float64, preds []float64) float64 {
 	if len(targets) != len(preds) {
 		panic(fmt.Sprintf("targets must have the same length of preds. targets: %d, preds: %d", len(targets), len(preds)))
