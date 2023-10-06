@@ -11,3 +11,7 @@ func NewFMLeaner(gd GradientDescent) FMLeaner {
 		gd: gd,
 	}
 }
+
+func (fm FMLeaner) grad(paramIndex int) float64 {
+	return 0.0
+}
