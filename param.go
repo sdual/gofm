@@ -15,6 +15,7 @@ type (
 		totalLen    int
 		linearLen   int
 		interactLen int
+		latestDim   int
 	}
 
 	// FMLinear contains parameters used in linear terms.
@@ -35,9 +36,10 @@ type (
 
 func NewFMParams(latentDim int, featureDim int, opts ...func(params *FMParams)) FMParams {
 	params := FMParams{
-		useBias:  false,
-		Linear:   NewFMLinear(featureDim),
-		Interact: NewFMInteraction(featureDim, latentDim),
+		useBias:   false,
+		Linear:    NewFMLinear(featureDim),
+		Interact:  NewFMInteraction(featureDim, latentDim),
+		latestDim: latentDim,
 	}
 	params.totalLen = params.totalNumParams()
 	params.linearLen = featureDim
@@ -74,6 +76,7 @@ func NewFMInteraction(numInteraction int, latentDim int) FMInteraction {
 		}
 		vecs = append(vecs, FMLatentVec{elements: elements})
 	}
+
 	return FMInteraction{
 		latentVecs: vecs,
 	}
@@ -84,8 +87,17 @@ func (fp FMParams) Update() {
 }
 
 func (fp FMParams) At(i int) float64 {
-	if i < len(fp.Linear.params) {
+	if i < fp.linearLen {
 		return fp.Linear.params[i]
+	} else {
+		// index in interaction terms
+		interactionIndex := i - (fp.linearLen - 1)
+		vecIndex := interactionIndex/fp.latestDim - 1
+		latentVec := fp.Interact.latentVecs[vecIndex]
+
+		// index in latent vector
+		latentVecIndex := interactionIndex - (vecIndex+1)*fp.latestDim
+		return latentVec.elements[latentVecIndex]
 	}
 }
 
