@@ -37,16 +37,19 @@ type (
 
 func NewFMParams(latentDim int, featureDim int, opts ...func(params *FMParams)) FMParams {
 	params := FMParams{
-		useBias:    false,
-		latestDim:  latentDim,
-		randomFunc: RandomFloat64,
+		useBias:     false,
+		latestDim:   latentDim,
+		totalLen:    featureDim + featureDim*latentDim,
+		linearLen:   featureDim,
+		interactLen: featureDim * latentDim,
 	}
-	params.linearLen = featureDim
-	params.totalLen = params.totalNumParams(featureDim)
-	params.interactLen = params.totalLen - featureDim
 
 	for _, opt := range opts {
 		opt(&params)
+	}
+
+	if params.randomFunc == nil {
+		params.randomFunc = RandomFloat64
 	}
 
 	params.Linear = NewFMLinear(featureDim, params.randomFunc)
@@ -108,12 +111,4 @@ func (fp FMParams) At(i int) float64 {
 		latentVecIndex := interactionIndex - vecIndex*fp.latestDim
 		return latentVec.elements[latentVecIndex]
 	}
-}
-
-func (fp FMParams) totalNumParams(featureDim int) int {
-	totalLen := featureDim
-	for _, vec := range fp.Interact.latentVecs {
-		totalLen += len(vec.elements)
-	}
-	return totalLen
 }
