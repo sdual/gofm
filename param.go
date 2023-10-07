@@ -1,15 +1,24 @@
 package gofm
 
+import (
+	"gonum.org/v1/gonum/mat"
+)
+
+const (
+	paramInitMax = 1.0
+	paramInitMin = -1.0
+)
+
 type (
-	// FMHyperParams contains hyper parameters for Factorization machine.
-	FMHyperParams struct {
+	// FMHyperparams contains hyperparameters for Factorization machine.
+	FMHyperparams struct {
 		latentDim int64
 	}
 
 	// FMParams contains model parameters for Factorization machine.
 	FMParams struct {
-		useBias     bool
-		bias        float64
+		useBias     bool    // Bias is not supported now.
+		bias        float64 // Bias is not supported now.
 		Linear      FMLinear
 		Interact    FMInteraction
 		totalLen    int
@@ -31,7 +40,7 @@ type (
 
 	// FMLatentVec contains latent vector used in interaction terms.
 	FMLatentVec struct {
-		elements []float64
+		vector mat.Vector
 	}
 )
 
@@ -72,7 +81,7 @@ func WithRandomFunc(f func(float64, float64) float64) func(params *FMParams) {
 func NewFMLinear(dim int, randomFunc func(float64, float64) float64) FMLinear {
 	params := make([]float64, 0, dim)
 	for i := 0; i < dim; i++ {
-		params = append(params, randomFunc(-1.0, 1.0))
+		params = append(params, randomFunc(paramInitMin, paramInitMax))
 	}
 	return FMLinear{
 		params: params,
@@ -84,9 +93,9 @@ func NewFMInteraction(numInteraction int, latentDim int, randomFunc func(float64
 	for i := 0; i < numInteraction; i++ {
 		elements := make([]float64, 0, latentDim)
 		for j := 0; j < latentDim; j++ {
-			elements = append(elements, randomFunc(-1.0, 1.0))
+			elements = append(elements, randomFunc(paramInitMin, paramInitMax))
 		}
-		vecs = append(vecs, FMLatentVec{elements: elements})
+		vecs = append(vecs, FMLatentVec{vector: mat.NewVecDense(latentDim, elements)})
 	}
 
 	return FMInteraction{
@@ -98,6 +107,8 @@ func (fp FMParams) Update() {
 
 }
 
+// At returns the parameter value specified by the index.
+// Unified indices are assigned to the entirety of parameters in the linear and interaction terms.
 func (fp FMParams) At(i int) float64 {
 	if i < fp.linearLen {
 		return fp.Linear.params[i]
@@ -109,6 +120,39 @@ func (fp FMParams) At(i int) float64 {
 
 		// index in latent vector
 		latentVecIndex := interactionIndex - vecIndex*fp.latestDim
-		return latentVec.elements[latentVecIndex]
+		return latentVec.vector.AtVec(latentVecIndex)
 	}
+}
+
+// LatentVecFromFeatureIndex returns the latent vector which corresponds to the feature index.
+// In interaction terms Σ_{i,j} <v_i, v_j> x_i x_j, the feature index i correspond to latent vector v_i.
+func (fp FMParams) LatentVecFromFeatureIndex(i int) mat.Vector {
+	return fp.Interact.latentVecs[i].vector
+}
+
+// ToLatentVecElementIndex maps the unified param index into the index of element in the latent vector.
+func (fp FMParams) ToLatentVecElementIndex(i int) int {
+	if i < fp.linearLen {
+		panic("index must be in interaction terms")
+	}
+
+	interactParamIndex := i - fp.linearLen
+	indexInLatentVector := interactParamIndex % fp.latestDim
+	return indexInLatentVector
+}
+
+// ToLatentVecIndex maps the unified param index into the index of the latent vector slice.
+// This method returns the index of latent vector in list of latent vectors.
+// The latent vector contains the parameter specified by the index.
+func (fp FMParams) ToLatentVecIndex(i int) int {
+	if i < fp.linearLen {
+		panic("index must be in interaction terms")
+	}
+	interactParamIndex := i - fp.linearLen
+	latentVecIndex := interactParamIndex / fp.latestDim
+	return latentVecIndex
+}
+
+func (fp FMParams) IsLinear(index int) bool {
+	return index < fp.linearLen
 }
