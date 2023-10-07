@@ -106,7 +106,7 @@ func TestFMParamsToLatentVecElementIndex(t *testing.T) {
 		-0.5030497609372591,
 	}
 
-	paramIndexToLatetVectorIndex := map[int]int{
+	paramIndexToLatentVectorEleIndex := map[int]int{
 		5: 0,
 		6: 1,
 		7: 2,
@@ -137,11 +137,11 @@ func TestFMParamsToLatentVecElementIndex(t *testing.T) {
 		want map[int]int
 	}{
 		{
-			name: "ToLatentVecElementIndex method maps the parameter index into the index in target latent vector",
+			name: "ToLatentVecElementIndex method maps the parameter index into the index in target latent vector element",
 			args: args{
 				paramIndices: []int{5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
 			},
-			want: paramIndexToLatetVectorIndex,
+			want: paramIndexToLatentVectorEleIndex,
 		},
 	}
 	for _, tt := range tests {
@@ -150,6 +150,86 @@ func TestFMParamsToLatentVecElementIndex(t *testing.T) {
 			for _, paramIndex := range tt.args.paramIndices {
 				if got := fp.ToLatentVecElementIndex(paramIndex); got != tt.want[paramIndex] {
 					t.Errorf("ToLatentVecElementIndex() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestFMParamsToLatentVecIndex(t *testing.T) {
+	randoms := []float64{
+		// parameters in linear term.
+		-0.0676945966455097,
+		0.4440724481952758,
+		0.6303579668166768,
+		-0.3131943974231358,
+		0.20629609481418254,
+		// latent vector in interaction term.
+		0.39247746871954314,
+		-0.5476150804831619,
+		-0.03396464094835039,
+		// latent vector in interaction term.
+		0.16615141245739373,
+		-0.7802055920361937,
+		-0.275942049244708,
+		// latent vector in interaction term.
+		-0.0585761116186686,
+		0.9858117104860424,
+		-0.5643249592026998,
+		// latent vector in interaction term.
+		0.47754886028288457,
+		0.7397362300575543,
+		-0.7930005163459948,
+		// latent vector in interaction term.
+		0.25143606218376835,
+		0.5136688711322772,
+		-0.5030497609372591,
+	}
+
+	paramIndexToLatentVectorIndex := map[int]int{
+		5: 0,
+		6: 0,
+		7: 0,
+
+		8:  1,
+		9:  1,
+		10: 1,
+
+		11: 2,
+		12: 2,
+		13: 2,
+
+		14: 3,
+		15: 3,
+		16: 3,
+
+		17: 4,
+		18: 4,
+		19: 4,
+	}
+
+	type args struct {
+		paramIndices []int
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[int]int
+	}{
+		{
+			name: "ToLatentVecIndex method maps the parameter index into the index in target latent vector",
+			args: args{
+				paramIndices: []int{5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
+			},
+			want: paramIndexToLatentVectorIndex,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fp := NewFMParams(3, 5, WithRandomFunc(newDummyRandom(randoms).randomFunc))
+			for _, paramIndex := range tt.args.paramIndices {
+				if got := fp.ToLatentVecIndex(paramIndex); got != tt.want[paramIndex] {
+					t.Errorf("ToLatentVecIndex() = %v, want %v", got, tt.want)
 				}
 			}
 		})
