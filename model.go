@@ -28,6 +28,6 @@ func (fm FactorizationMachine) Predict(features mat.Matrix) mat.Vector {
 	return nil
 }
 
-func (fm FactorizationMachine) Train() {
-
+func (fm FactorizationMachine) Train() FMParams {
+	return FMParams{}
 }
