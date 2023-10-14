@@ -2,18 +2,51 @@ package gofm
 
 import "gonum.org/v1/gonum/mat"
 
-type FMLeaner struct {
-	gd          GradientDescent
-	hyperparams FMHyperparams
-	Params      FMParams
-	featureDim  int
+type (
+	FMLeaner struct {
+		gd          GradientDescent
+		hyperparams FMHyperparams
+		Params      FMParams
+		featureDim  int
+		maxItr      int
+		loss        Loss
+	}
+
+	FMLeanerOpts func(*FMLeaner)
+)
+
+func NewFMLeaner(latentDim int, featureDim int, maxItr int, lr float64, opts ...FMLeanerOpts) FMLeaner {
+	fm := &FMLeaner{
+		gd:         NewStandardGradientDescent(lr),
+		Params:     NewFMParams(latentDim, featureDim),
+		featureDim: featureDim,
+		maxItr:     maxItr,
+		loss:       NewBinaryCrossEntropy(),
+	}
+
+	for _, opt := range opts {
+		opt(fm)
+	}
+	return *fm
 }
 
-func NewFMLeaner(gd GradientDescent, featureDim int) FMLeaner {
-	return FMLeaner{
-		gd:         gd,
-		featureDim: featureDim,
+func WithOptimizer(gd GradientDescent) FMLeanerOpts {
+	return func(fm *FMLeaner) {
+		fm.gd = gd
 	}
+}
+
+func WithLossFunc(loss Loss) FMLeanerOpts {
+	return func(fm *FMLeaner) {
+		fm.loss = loss
+	}
+}
+
+func (fm FMLeaner) Train() FMParams {
+	for i := 0; i < fm.maxItr; i++ {
+
+	}
+	return FMParams{}
 }
 
 func (fm FMLeaner) grad(paramIndex int, features mat.Vector) float64 {

@@ -7,6 +7,23 @@ import (
 
 const epsilon = 1e-7
 
+type (
+	Loss struct {
+		Fn   Fn
+		Diff DiffFn
+	}
+
+	Fn     func(targets, preds []float64) float64
+	DiffFn func(targets, preds []float64) float64
+)
+
+func NewBinaryCrossEntropy() Loss {
+	return Loss{
+		Fn:   BinaryCrossEntropy,
+		Diff: DiffBinaryCrossEntropy,
+	}
+}
+
 // BinaryCrossEntropy calculates binary cross entropy
 func BinaryCrossEntropy(targets []float64, preds []float64) float64 {
 	if len(targets) != len(preds) {

@@ -30,7 +30,7 @@ type (
 
 	// FMLinear contains parameters used in linear terms.
 	FMLinear struct {
-		params []float64
+		params mat.MutableVector
 	}
 
 	// FMInteraction contains parameters used in interaction terms.
@@ -40,7 +40,7 @@ type (
 
 	// FMLatentVec contains latent vector used in interaction terms.
 	FMLatentVec struct {
-		vector mat.Vector
+		vector mat.MutableVector
 	}
 )
 
@@ -84,7 +84,7 @@ func NewFMLinear(dim int, randomFunc func(float64, float64) float64) FMLinear {
 		params = append(params, randomFunc(paramInitMin, paramInitMax))
 	}
 	return FMLinear{
-		params: params,
+		params: mat.NewVecDense(dim, params),
 	}
 }
 
@@ -103,15 +103,21 @@ func NewFMInteraction(numInteraction int, latentDim int, randomFunc func(float64
 	}
 }
 
-func (fp FMParams) Update() {
-
+func (fp FMParams) Update(paramIndex int, value float64) {
+	if fp.IsLinear(paramIndex) {
+		fp.Linear.params.SetVec(paramIndex, value)
+	} else {
+		latentVecIndex := fp.ToLatentVecIndex(paramIndex)
+		vecElementIndex := fp.ToLatentVecElementIndex(paramIndex)
+		fp.Interact.latentVecs[latentVecIndex].vector.SetVec(vecElementIndex, value)
+	}
 }
 
 // At returns the parameter value specified by the index.
 // Unified indices are assigned to the entirety of parameters in the linear and interaction terms.
 func (fp FMParams) At(i int) float64 {
 	if i < fp.linearLen {
-		return fp.Linear.params[i]
+		return fp.Linear.params.AtVec(i)
 	} else {
 		// index in interaction terms
 		interactionIndex := i - fp.linearLen
