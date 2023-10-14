@@ -235,3 +235,44 @@ func TestFMParamsToLatentVecIndex(t *testing.T) {
 		})
 	}
 }
+
+func TestFMParamsUpdate(t *testing.T) {
+	type fields struct {
+		useBias     bool
+		bias        float64
+		Linear      FMLinear
+		Interact    FMInteraction
+		totalLen    int
+		linearLen   int
+		interactLen int
+		latestDim   int
+		randomFunc  func(float64, float64) float64
+	}
+	type args struct {
+		paramIndex int
+		value      float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fp := FMParams{
+				useBias:     tt.fields.useBias,
+				bias:        tt.fields.bias,
+				Linear:      tt.fields.Linear,
+				Interact:    tt.fields.Interact,
+				totalLen:    tt.fields.totalLen,
+				linearLen:   tt.fields.linearLen,
+				interactLen: tt.fields.interactLen,
+				latestDim:   tt.fields.latestDim,
+				randomFunc:  tt.fields.randomFunc,
+			}
+			fp.Update(tt.args.paramIndex, tt.args.value)
+		})
+	}
+}

@@ -49,6 +49,12 @@ func (fm FMLeaner) Train() FMParams {
 	return FMParams{}
 }
 
+func (fm FMLeaner) updateParams(features mat.Vector) {
+	for paramIndex := 0; paramIndex < fm.Params.totalLen; paramIndex++ {
+		_ = fm.grad(paramIndex, features)
+	}
+}
+
 func (fm FMLeaner) grad(paramIndex int, features mat.Vector) float64 {
 	if fm.Params.IsLinear(paramIndex) {
 		return fm.linearGrad(paramIndex, features)

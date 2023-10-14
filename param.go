@@ -103,6 +103,7 @@ func NewFMInteraction(numInteraction int, latentDim int, randomFunc func(float64
 	}
 }
 
+// Update updates the parameter value specified by the index.
 func (fp FMParams) Update(paramIndex int, value float64) {
 	if fp.IsLinear(paramIndex) {
 		fp.Linear.params.SetVec(paramIndex, value)
@@ -159,6 +160,7 @@ func (fp FMParams) ToLatentVecIndex(i int) int {
 	return latentVecIndex
 }
 
+// IsLinear returns the flag of whether the parameter is within the linear or interaction term.
 func (fp FMParams) IsLinear(index int) bool {
 	return index < fp.linearLen
 }
